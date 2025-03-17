@@ -17,10 +17,10 @@ class Parsian extends PortAbstract implements PortInterface
 	protected $serverUrl = 'https://pec.shaparak.ir/NewIPGServices/Sale/SaleService.asmx?wsdl';
 
 	/**
-     * Url of parsian verify gateway web service
-     *
-     * @var string
-     */
+	 * Url of parsian verify gateway web service
+	 *
+	 * @var string
+	 */
 
 	protected $verifyServerUrl = 'https://pec.shaparak.ir/NewIPGServices/Confirm/ConfirmService.asmx?wsdl';
 
@@ -56,6 +56,11 @@ class Parsian extends PortAbstract implements PortInterface
 	public function redirect()
 	{
 		return \Redirect::to($this->gateUrl . $this->refId());
+	}
+
+	public function getGatewayUrl()
+	{
+		return $this->gateUrl . $this->refId();
 	}
 
 	/**
@@ -114,7 +119,6 @@ class Parsian extends PortAbstract implements PortInterface
 		try {
 			$soap = new SoapClient($this->serverUrl);
 			$response = $soap->SalePaymentRequest($params);
-
 		} catch (\SoapFault $e) {
 			$this->transactionFailed();
 			$this->newLog('SoapFault', $e->getMessage());
@@ -134,7 +138,6 @@ class Parsian extends PortAbstract implements PortInterface
 			$this->transactionFailed();
 			$this->newLog($status, $errorMessage);
 			throw new ParsianErrorException($errorMessage, $status);
-
 		} else {
 			$this->transactionFailed();
 			$this->newLog(-1, 'خطا در اتصال به درگاه پارسیان');
@@ -166,7 +169,7 @@ class Parsian extends PortAbstract implements PortInterface
 
 		$params = array(
 			'requestData' => [
-				'LoginAccount' => $this->config->get('gateway.parsian.pin'),  
+				'LoginAccount' => $this->config->get('gateway.parsian.pin'),
 				'Token' => $token,
 			]
 		);
@@ -181,7 +184,7 @@ class Parsian extends PortAbstract implements PortInterface
 		if ($result === false || !isset($result->ConfirmPaymentResult->Status))
 			throw new ParsianErrorException('پاسخ دریافتی از بانک نامعتبر است.', -1);
 
-        $status = $result->ConfirmPaymentResult->Status;
+		$status = $result->ConfirmPaymentResult->Status;
 		if ($status != 0) {
 			$errorMessage = ParsianResult::errorMessage($status);
 			$this->transactionFailed();
