@@ -30,22 +30,23 @@ class Payping extends PortAbstract implements PortInterface
      *
      * @var string
      */
-    protected $requestPayUrl = 'https://api.payping.ir/v1/pay';
+    protected $requestPayUrl = 'https://api.payping.ir/v2/pay';
     
     /**
      * go to bank redirect url
      *
      * @var string
      */
-    protected $gotoipgUrl = 'https://api.payping.ir/v1/pay/gotoipg/';
+    protected $gotoipgUrl = 'https://api.payping.ir/v2/pay/gotoipg/';
 
     /**
      * go to bank redirect url
      *
      * @var string
      */
-    protected $verifyUrl = 'https://api.payping.ir/v1/pay/verify';
+    protected $verifyUrl = 'https://api.payping.ir/v2/pay/verify';
 
+        
     /**
      * get Token
      */
@@ -183,7 +184,7 @@ class Payping extends PortAbstract implements PortInterface
             'description'	=> $this->description ? $this->description : $this->config->get('gateway.payping.description', ''),
             'amount'		=> $this->amount / 10, // toman
             'clientRefId'	=> $this->transactionId(),
-            'payerIdentity'	=> $this->email ? $this->email :$this->config->get('gateway.payping.email', ''),
+            'payerIdentity'	=> $this->mobileNumber ? $this->mobileNumber : ($this->email ? $this->email : $this->config->get('gateway.payping.email', '')),
         );
         $header = array(
             'authorization: Bearer ' . $this->config->get('gateway.payping.token')
@@ -218,9 +219,9 @@ class Payping extends PortAbstract implements PortInterface
         );
         $result = $this->APICall($this->verifyUrl, $fields, $header, true);
         $jsonresult = json_decode($result);
-        if (isset($jsonresult->success)) {
+        if (isset($jsonresult->success) || isset($jsonresult->amount)) {
             $this->trackingCode = $refId;
-            $this->cardNumber = \Request::get('cardnumber', '');
+            $this->cardNumber = \Request::get('cardnumber', $jsonresult->cardNumber ?? '');
             $this->transactionSucceed();
             $this->newLog(100, Enum::TRANSACTION_SUCCEED_TEXT);
             return true;
