@@ -138,7 +138,7 @@ class Plisio extends PortAbstract implements PortInterface
             'order_name'      => !empty($this->name) ? $this->name : 'OrderName',//$this->name,
             'order_number'    => $this->transactionId(),
             'source_currency' => $this->config->get('gateway.Plisio.source_currency', 'USD'), //one of this list https://plisio.net/documentation/appendices/supported-fiat-currencies
-            'currency'        => 'BTC', //One of this list https://plisio.net/documentation/appendices/supported-cryptocurrencies
+            'crypto_currency' => $this->config->get('gateway.Plisio.crypto_currency','BTC'), //One of this list https://plisio.net/documentation/appendices/supported-cryptocurrencies
             'source_amount'   => $this->amount,
             'email'           => $this->email,
             'description'     => $this->description,
