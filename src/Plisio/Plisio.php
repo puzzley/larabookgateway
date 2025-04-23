@@ -132,10 +132,9 @@ class Plisio extends PortAbstract implements PortInterface
     {
         $this->newTransaction();
         $url = 'https://plisio.net/api/v1/invoices/new';
-        //\Log::info($this->getCallback());
         $params = [
             'api_key'         => $this->config->get('gateway.Plisio.secret_key', ''),
-            'order_name'      => !empty($this->name) ? $this->name : 'OrderName',//$this->name,
+            'order_name'      => !empty($this->name) ? $this->name : 'OrderName',
             'order_number'    => $this->transactionId(),
             'source_currency' => $this->config->get('gateway.Plisio.source_currency', 'USD'), //one of this list https://plisio.net/documentation/appendices/supported-fiat-currencies
             'currency'        => 'BTC', //One of this list https://plisio.net/documentation/appendices/supported-cryptocurrencies
@@ -144,34 +143,34 @@ class Plisio extends PortAbstract implements PortInterface
             'description'     => $this->description,
             'callback_url'    => $this->getCallback(),
         ];
-        $send_data = '?';
-        foreach ($params as $key => $value) {
-            $send_data .= "$key=$value&";
-        }
+        
+        $send_data = '?' . http_build_query($params);
+        
         $curl = curl_init();
-        $url = $url . $send_data;
-        curl_setopt($curl, CURLOPT_URL, $url);
-        curl_setopt($curl, CURLOPT_HEADER, FALSE);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($curl, CURLOPT_URL, $url . $send_data);
+        curl_setopt($curl, CURLOPT_HEADER, false);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_HTTPHEADER, ["Content-type: application/json; charset=UTF-8"]);
+        
         $output = curl_exec($curl);
         $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        if ($status != 200) {
-            return "PROBLEM IN RESPONSE STATUS CODE IS: $status";
-        }
         curl_close($curl);
-        $response = json_decode($output, TRUE);
+    
+        $response = json_decode($output, true);
 
+        if ($status != 200) {
+            $errorMessage = $response['data']['message'] ?? 'Unknown error';
+            throw new Plisio_Exception("Error: $errorMessage, status code: $status");
+        }
         if ($response['status'] == 'success') {
             $refId = $response['data']['txn_id'];
             $gatewayUrl = $response['data']['invoice_url'];
         } else {
-            return $response['data']['message'];//should throw excepiton
+            throw new Plisio_Exception($response['data']['message'] ?? 'Unknown error');
         }
 
         $this->refId = $refId ?? '';
         $this->transactionSetRefId();
-
         $this->gatewayUrl = $gatewayUrl;
     }
 
