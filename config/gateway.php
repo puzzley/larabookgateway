@@ -130,6 +130,19 @@ return [
 		'description' => '',
 		'callback-url' => url('/callback/payping'),
 	],
+
+    //--------------------------------
+    // Digipay gateway
+    //--------------------------------
+    'Digipay' => [
+        'apiPaymentUrl' => 'https://api.mydigipay.com', // with out '/' at the end
+        'username' => '',
+        'password' => '',
+        'client_id' => '',
+        'client_secret' => '',
+        'callbackUrl' => 'http://yoursite.com/path/to',
+        'currency' => 'R', //Can be R, T (Rial, Toman)
+    ],
 	//-------------------------------
 	// Tables names
 	//--------------------------------
