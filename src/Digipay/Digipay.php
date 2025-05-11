@@ -42,7 +42,7 @@ class Digipay extends PortAbstract implements PortInterface
     public function __construct()
     {
         parent::__construct();
-        $this->settings = (object) \Config::get('gateway.Digipay');
+        $this->settings = (object) $this->config->get('gateway.digipay');
         $this->oauthToken = $this->oauth();
     }
 
@@ -293,7 +293,6 @@ class Digipay extends PortAbstract implements PortInterface
         }
         return $body;
     }
-
 
     protected function userVerify()
     {
