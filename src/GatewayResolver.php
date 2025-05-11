@@ -23,6 +23,9 @@ use Larabookir\Gateway\Exceptions\InvalidRequestException;
 use Larabookir\Gateway\Exceptions\NotFoundTransactionException;
 use Illuminate\Support\Facades\DB;
 use Larabookir\Gateway\Bazarpay\Bazarpay;
+use Larabookir\Gateway\Digipay\Digipay;
+use Larabookir\Gateway\Paypal\Paypal;
+use Larabookir\Gateway\Stripe\Stripe;
 use Larabookir\Gateway\Thawani\Thawani;
 
 class GatewayResolver
@@ -65,7 +68,8 @@ class GatewayResolver
 	 */
 	public function getSupportedPorts()
 	{
-		return [Enum::MELLAT, Enum::SADAD, Enum::ZARINPAL, Enum::PAYLINE, Enum::JAHANPAY, Enum::PARSIAN, Enum::PASARGAD, Enum::SAMAN, Enum::PAY, Enum::SADERAT, Enum::SADERATNEW, Enum::IDPAY, Enum::ALFACOINS, Enum::PAYPING, Enum::PLISIO, Enum::BAZARPAY, Enum::THAWANI];
+		return [Enum::MELLAT, Enum::SADAD, Enum::ZARINPAL, Enum::PAYLINE, Enum::JAHANPAY, Enum::PARSIAN, Enum::PASARGAD, Enum::SAMAN, Enum::PAY, Enum::SADERAT, Enum::SADERATNEW, Enum::IDPAY, Enum::ALFACOINS, Enum::PAYPING, Enum::PLISIO, Enum::BAZARPAY, Enum::THAWANI, Enum::PAYPAL,
+        Enum::STRIPE, ENUM::DIGIPAY];
 	}
 
 	/**
@@ -105,7 +109,7 @@ class GatewayResolver
 	 */
 	public function verify()
 	{
-		if (!$this->request->has('transaction_id') && !$this->request->has('iN') && !$this->request->has('invoiceid') && !$this->request->has('order_number'))
+		if (!$this->request->has('transaction_id') && !$this->request->has('iN') && !$this->request->has('invoiceid') && !$this->request->has('order_number')&& !$this->request->has('token') && !$this->request->has('session_id'))
 			throw new InvalidRequestException;
 		if ($this->request->has('transaction_id')) {
 			$id = $this->request->get('transaction_id');
@@ -113,7 +117,9 @@ class GatewayResolver
 			$id = $this->request->get('invoiceid');
 		} elseif ($this->request->has('order_number')) {
 			$id = $this->request->get('order_number');
-		} else {
+		} elseif ($this->request->has('session_id')) {
+            $id = $this->request->get('session_id');
+        } else {
 			$id = $this->request->get('iN');
 		}
 
@@ -169,7 +175,13 @@ class GatewayResolver
             $name = Enum::PLISIO;
         } elseif ($port InstanceOf Bazarpay) {
             $name = Enum::BAZARPAY;
-        } elseif ($port InstanceOf Thawani) {
+        } elseif ($port InstanceOf Digipay) {
+            $name = Enum::DIGIPAY;
+        }elseif ($port InstanceOf Stripe) {
+            $name = Enum::STRIPE;
+        }elseif ($port InstanceOf Paypal) {
+            $name = Enum::PAYPAL;
+        }elseif ($port InstanceOf Thawani) {
             $name = Enum::THAWANI;
         } elseif(in_array(strtoupper($port),$this->getSupportedPorts())){
 			$port=ucfirst(strtolower($port));
