@@ -23,6 +23,9 @@ If you encounter any bugs or issues, please inform us by creating an [issue](htt
 13. PLISIO (plisio.net)
 14. BAZARPAY
 15. THAWANI
+16. DIGIPAY
+17. STRIPE
+18. PAYPAL
 
 ## 🛠️ Installation
 
@@ -30,9 +33,9 @@ Follow these steps to install the package:
 
 1. Run the following command in your terminal:
 
-    ```sh
-    composer require larabook/gateway
-    ```
+   ```sh
+   composer require larabook/gateway
+   ```
 
 2. Add the following lines to `config/app.php`:
 
@@ -41,7 +44,7 @@ Follow these steps to install the package:
        // ...
        Larabookir\Gateway\GatewayServiceProvider::class,
    ],
-   
+
    'aliases' => [
        // ...
        'Gateway' => Larabookir\Gateway\Gateway::class,
@@ -50,15 +53,15 @@ Follow these steps to install the package:
 
 3. Publish the configuration file:
 
-    ```sh
-    php artisan vendor:publish --provider=Larabookir\Gateway\GatewayServiceProvider
-    ```
+   ```sh
+   php artisan vendor:publish --provider=Larabookir\Gateway\GatewayServiceProvider
+   ```
 
 4. Run migrations:
 
-    ```sh
-    php artisan migrate
-    ```
+   ```sh
+   php artisan migrate
+   ```
 
 ## ⚙️ Configuration
 

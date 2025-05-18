@@ -130,6 +130,51 @@ return [
 		'description' => '',
 		'callback-url' => url('/callback/payping'),
 	],
+        //--------------------------------
+    // DigiPay gateway
+    //--------------------------------
+    'digipay' => [
+        'apiPaymentUrl' => 'https://api.mydigipay.com', 
+        'username' => '',
+        'password' => '',
+        'client_id' => 'xxx',
+        'client_secret' => 'xxx',
+        'callbackUrl' => 'http://yoursite.com/path/to',
+        'deliver_after_verify' => true,
+        'currency' => 'R', //Can be R, T (Rial, Toman)
+    ],
+
+    //--------------------------------
+    // Stripe gateway
+    //--------------------------------
+    'stripe' => [
+        'client_id'      => 'xxx',
+        'client_secret'  => 'xxx',
+        'timeout'        => 25,
+        'callback-url'   => 'http://yoursite.com/path/to',
+        'currency'       => 'USD'
+    ],
+    //--------------------------------
+    // Paypal gateway
+    //--------------------------------
+    'paypal' => [
+        'client_id'     => 'xxx',
+        'client_secret' => 'xxx',
+        'server'        => 'test', // Servers: [test || main]
+        'callback_url'  => url('/callback/paypal'),
+        'currency'      => 'USD',
+        'timeout'      => 25,
+        // One of this list items https://developer.paypal.com/api/rest/reference/currency-codes/
+    ],
+    //-------------------------------
+    // Proxy settings
+    // first of all this settings read from config folder of app (serivces.php) if it was not exist read from below
+    //--------------------------------
+    'proxy' => [
+        'address' => '127.0.0.1',
+        'port'    => '2081',
+        'status'  => 'false',
+    ],
 	//-------------------------------
 	// Tables names
 	//--------------------------------
