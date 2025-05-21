@@ -2,12 +2,15 @@
 
 namespace Larabookir\Gateway;
 
+use Larabookir\Gateway\Digipay\Digipay;
 use Larabookir\Gateway\Parsian\Parsian;
+use Larabookir\Gateway\Paypal\Paypal;
 use Larabookir\Gateway\Sadad\Sadad;
 use Larabookir\Gateway\Mellat\Mellat;
 use Larabookir\Gateway\Payline\Payline;
 use Larabookir\Gateway\Pasargad\Pasargad;
 use Larabookir\Gateway\Saman\Saman;
+use Larabookir\Gateway\Stripe\Stripe;
 use Larabookir\Gateway\Zarinpal\Zarinpal;
 use Larabookir\Gateway\JahanPay\JahanPay;
 use Larabookir\Gateway\Pay\Pay;
@@ -38,7 +41,7 @@ class GatewayResolver
 	/**
 	 * Keep current port driver
 	 *
-	 * @var Mellat|Saman|Sadad|Zarinpal|Payline|JahanPay|Parsian|Pay|Saderat|Saderatnew|Idpay|Alfacoins|Payping|Plisio|Bazarpay|Thawani
+	 * @var Mellat|Saman|Sadad|Zarinpal|Payline|JahanPay|Parsian|Pay|Saderat|Saderatnew|Idpay|Alfacoins|Payping|Plisio|Bazarpay|Thawani|Digipay|Paypal|Stripe
 	 */
 	protected $port;
 
@@ -65,7 +68,8 @@ class GatewayResolver
 	 */
 	public function getSupportedPorts()
 	{
-		return [Enum::MELLAT, Enum::SADAD, Enum::ZARINPAL, Enum::PAYLINE, Enum::JAHANPAY, Enum::PARSIAN, Enum::PASARGAD, Enum::SAMAN, Enum::PAY, Enum::SADERAT, Enum::SADERATNEW, Enum::IDPAY, Enum::ALFACOINS, Enum::PAYPING, Enum::PLISIO, Enum::BAZARPAY, Enum::THAWANI];
+		return [Enum::MELLAT, Enum::SADAD, Enum::ZARINPAL, Enum::PAYLINE, Enum::JAHANPAY, Enum::PARSIAN, Enum::PASARGAD, Enum::SAMAN, Enum::PAY, Enum::SADERAT, Enum::SADERATNEW, Enum::IDPAY, Enum::ALFACOINS, Enum::PAYPING, Enum::PLISIO, Enum::BAZARPAY, Enum::THAWANI,
+        Enum::DIGIPAY, Enum::STRIPE, Enum::PAYPAL];
 	}
 
 	/**
@@ -105,7 +109,7 @@ class GatewayResolver
 	 */
 	public function verify()
 	{
-		if (!$this->request->has('transaction_id') && !$this->request->has('iN') && !$this->request->has('invoiceid') && !$this->request->has('order_number'))
+		if (!$this->request->has('transaction_id') && !$this->request->has('iN') && !$this->request->has('invoiceid') && !$this->request->has('order_number')&& !$this->request->has('session_id'))
 			throw new InvalidRequestException;
 		if ($this->request->has('transaction_id')) {
 			$id = $this->request->get('transaction_id');
@@ -113,7 +117,9 @@ class GatewayResolver
 			$id = $this->request->get('invoiceid');
 		} elseif ($this->request->has('order_number')) {
 			$id = $this->request->get('order_number');
-		} else {
+		} elseif ($this->request->has('session_id')) {
+            $id = $this->request->get('session_id');
+        } else {
 			$id = $this->request->get('iN');
 		}
 
@@ -171,7 +177,13 @@ class GatewayResolver
             $name = Enum::BAZARPAY;
         } elseif ($port InstanceOf Thawani) {
             $name = Enum::THAWANI;
-        } elseif(in_array(strtoupper($port),$this->getSupportedPorts())){
+        } elseif ($port InstanceOf Stripe) {
+            $name = Enum::STRIPE;
+        }elseif ($port InstanceOf Paypal) {
+            $name = Enum::PAYPAL;
+        }elseif ($port InstanceOf Digipay) {
+            $name = Enum::DIGIPAY;
+        }elseif(in_array(strtoupper($port),$this->getSupportedPorts())){
 			$port=ucfirst(strtolower($port));
 			$name=strtoupper($port);
 			$class=__NAMESPACE__.'\\'.$port.'\\'.$port;

@@ -21,6 +21,9 @@ class Enum
     const PLISIO     = 'PLISIO';
     const BAZARPAY   = 'BAZARPAY';
     const THAWANI    = 'THAWANI';
+    const DIGIPAY    = 'DIGIPAY';
+    const STRIPE     = 'STRIPE';
+    const PAYPAL     = 'PAYPAL';
 
 	/**
 	 * Status code for status field in poolport_transactions table
