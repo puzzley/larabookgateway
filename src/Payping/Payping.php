@@ -30,21 +30,21 @@ class Payping extends PortAbstract implements PortInterface
      *
      * @var string
      */
-    protected $requestPayUrl = 'https://api.payping.ir/v2/pay';
+    protected $requestPayUrl = 'https://api.payping.ir/new/v2/pay';
     
     /**
      * go to bank redirect url
      *
      * @var string
      */
-    protected $gotoipgUrl = 'https://api.payping.ir/v2/pay/gotoipg/';
+    protected $gotoipgUrl = 'https://api.payping.ir/new/v2/pay/gotoipg/';
 
     /**
      * go to bank redirect url
      *
      * @var string
      */
-    protected $verifyUrl = 'https://api.payping.ir/v2/pay/verify';
+    protected $verifyUrl = 'https://api.payping.ir/new/v2/pay/verify';
 
         
     /**
@@ -210,8 +210,9 @@ class Payping extends PortAbstract implements PortInterface
     {
         $refId = \Request::get('refid', false);
         $fields = array(
-            'amount'	=> $this->amount / 10,
-            'refId'		=> $refId,
+            'amount' => $this->amount / 10,
+            "paymentCode" => $this->refId,
+            'refId' => $refId,
         );
         $header = array(
             'Accept: application/json',
