@@ -96,13 +96,12 @@ class Zibal extends PortAbstract implements PortInterface
             'Content-Type' => 'application/json',
         ];
         
-        $response = \Http::withHeaders($headers)
+        $response = Http::withHeaders($headers)
             ->post($url, $params);
         
         $body = json_decode($response->body(), true);
         
-        if ($response->status() != 200 && $body['result'] != 100) {
-            $message = $body['message'] ?? 'خطا در هنگام درخواست برای پرداخت رخ داده است.';
+        if ($response->status() != 200 || $body['result'] != 100) {
             throw new ZibalException($body['result']);
         }
         
@@ -116,15 +115,10 @@ class Zibal extends PortAbstract implements PortInterface
         $url = self::SERVER_URL . self::START_URL . $trackId;
         $this->setPaymentUrl($url);
     }
-
-    protected function commit()
-    {
-        // No use
-    }
-
+    
     protected function verifyPayment()
     {
-        $this->refId = \Request::input('trackId');
+        $this->trackingCode = \Request::input('trackId');
 
         $url = self::SERVER_URL . self::VERIFY_URL;
         
@@ -140,11 +134,10 @@ class Zibal extends PortAbstract implements PortInterface
         $body = json_decode($response->body(), true);
         
         if ($response->status() != 200
-            && $body['result']  != 100
-            && $body['message'] != 'success'
-            && $body['amount']  != $this->amount
+            || $body['result']  != 100
+            || $body['message'] != 'success'
+            || $body['amount']  != $this->amount
         ) {
-            $message = $body['result']['message'] ?? 'تراکنش تایید نشد';
             throw new ZibalException($body['result']);
         }
         $this->transactionSucceed();
@@ -171,18 +164,6 @@ class Zibal extends PortAbstract implements PortInterface
         $this->paymentUrl = $paymentUrl;
 
         return $this;
-    }
-    
-    protected function transactionSucceed()
-    {
-        return $this->getTable()->whereId($this->transactionId)->update([
-            'ref_id'        => $this->refId,
-            'payment_date'  => \Carbon::now(),
-            'updated_at'    => \Carbon::now(),
-            'card_number'   => $this->cardNumber,
-            'tracking_code' => $this->trackingCode,
-            'status'        => Enum::TRANSACTION_SUCCEED,
-        ]);
     }
 }
 
