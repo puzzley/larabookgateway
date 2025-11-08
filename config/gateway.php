@@ -166,6 +166,13 @@ return [
         'timeout'      => 25,
         // One of this list items https://developer.paypal.com/api/rest/reference/currency-codes/
     ],
+    //--------------------------------
+    // Zibal gateway
+    //--------------------------------
+    'Zibal' => [
+        'merchant' => 'zibal',
+        'callbackUrl' => 'http://yoursite.com/path/to',
+    ],
     //-------------------------------
     // Proxy settings
     // first of all this settings read from config folder of app (serivces.php) if it was not exist read from below

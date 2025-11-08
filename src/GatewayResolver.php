@@ -27,6 +27,7 @@ use Larabookir\Gateway\Exceptions\NotFoundTransactionException;
 use Illuminate\Support\Facades\DB;
 use Larabookir\Gateway\Bazarpay\Bazarpay;
 use Larabookir\Gateway\Thawani\Thawani;
+use Larabookir\Gateway\Zibal\Zibal;
 
 class GatewayResolver
 {
@@ -69,7 +70,7 @@ class GatewayResolver
 	public function getSupportedPorts()
 	{
 		return [Enum::MELLAT, Enum::SADAD, Enum::ZARINPAL, Enum::PAYLINE, Enum::JAHANPAY, Enum::PARSIAN, Enum::PASARGAD, Enum::SAMAN, Enum::PAY, Enum::SADERAT, Enum::SADERATNEW, Enum::IDPAY, Enum::ALFACOINS, Enum::PAYPING, Enum::PLISIO, Enum::BAZARPAY, Enum::THAWANI,
-        Enum::DIGIPAY, Enum::STRIPE, Enum::PAYPAL];
+        Enum::DIGIPAY, Enum::STRIPE, Enum::PAYPAL, Enum::ZIBAL];
 	}
 
 	/**
@@ -109,7 +110,7 @@ class GatewayResolver
 	 */
 	public function verify()
 	{
-		if (!$this->request->has('transaction_id') && !$this->request->has('iN') && !$this->request->has('invoiceid') && !$this->request->has('order_number')&& !$this->request->has('session_id'))
+		if (!$this->request->has('trackId') && !$this->request->has('transaction_id') && !$this->request->has('iN') && !$this->request->has('invoiceid') && !$this->request->has('order_number')&& !$this->request->has('session_id'))
 			throw new InvalidRequestException;
 		if ($this->request->has('transaction_id')) {
 			$id = $this->request->get('transaction_id');
@@ -119,7 +120,9 @@ class GatewayResolver
 			$id = $this->request->get('order_number');
 		} elseif ($this->request->has('session_id')) {
             $id = $this->request->get('session_id');
-        } else {
+        } elseif ($this->request->has('trackId')) {
+            $id = $this->request->get('trackId');
+        }else {
 			$id = $this->request->get('iN');
 		}
 
@@ -181,6 +184,8 @@ class GatewayResolver
             $name = Enum::STRIPE;
         }elseif ($port InstanceOf Paypal) {
             $name = Enum::PAYPAL;
+        }elseif ($port InstanceOf Zibal){
+            $name = Enum::ZIBAL;
         }elseif ($port InstanceOf Digipay) {
             $name = Enum::DIGIPAY;
         }elseif(in_array(strtoupper($port),$this->getSupportedPorts())){

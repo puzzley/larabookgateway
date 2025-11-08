@@ -26,6 +26,7 @@ If you encounter any bugs or issues, please inform us by creating an [issue](htt
 16. DIGIPAY
 17. STRIPE
 18. PAYPAL
+19. Zibal
 
 ## 🛠️ Installation
 
