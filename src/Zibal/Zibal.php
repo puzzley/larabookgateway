@@ -2,10 +2,9 @@
 
 namespace Larabookir\Gateway\Zibal;
 
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\Redirect;
 use Larabookir\Gateway\Enum;
 use Larabookir\Gateway\PortAbstract;
 use Larabookir\Gateway\PortInterface;
@@ -13,25 +12,21 @@ use Larabookir\Gateway\Zibal\ZibalException;
 
 class Zibal extends PortAbstract implements PortInterface
 {
-    const SERVER_URL = 'https://gateway.zibal.ir';
-    const REQUEST_URL = '/v1/request';
-    const START_URL = '/start/';
-    const VERIFY_URL = '/v1/verify';
-    const INQUIRY_URL = '/v1/inquiry';
+    private const SERVER_URL = 'https://gateway.zibal.ir';
+    private const REQUEST_URL = '/v1/request';
+    private const START_URL = '/start/';
+    private const VERIFY_URL = '/v1/verify';
     protected $paymentUrl;
-    protected $settings;
     protected $invoiceNumber;
-    
+
     public function __construct()
     {
         parent::__construct();
-        $this->settings = (object) Config::get('gateway.Zibal');
     }
-    
+
     public function set($amount)
     {
         $this->amount = $amount;
-
         return $this;
     }
 
@@ -43,7 +38,7 @@ class Zibal extends PortAbstract implements PortInterface
 
     public function redirect()
     {
-        return \Redirect::to($this->getGatewayUrl());
+        return Redirect::to($this->getGatewayUrl());
     }
 
     public function verify($transaction)
@@ -53,7 +48,7 @@ class Zibal extends PortAbstract implements PortInterface
         $this->verifyPayment();
         return $this;
     }
-    
+
     public function setInvoiceNumber($invoiceNumber)
     {
         $this->invoiceNumber = $invoiceNumber;
@@ -64,47 +59,47 @@ class Zibal extends PortAbstract implements PortInterface
         return $this->invoiceNumber;
     }
 
-    function setCallback($url)
+    public function setCallback($url)
     {
         $this->callbackUrl = $url;
         return $this;
     }
 
-    function getCallback()
+    public function getCallback()
     {
         if (!$this->callbackUrl) {
-            $this->callbackUrl = $this->config->get('gateway.Zibal.callbackUrl');
+            $this->callbackUrl = $this->config->get('gateway.zibal.callbackUrl');
         }
 
         return $this->makeCallback($this->callbackUrl, ['transaction_id' => $this->transactionId()]);
     }
-    
+
     private function request()
     {
         $url = self::SERVER_URL . self::REQUEST_URL;
-        
+
         $params = [
-            'merchant'      => $this->config->get('gateway.Zibal.merchant'),
+            'merchant'      => $this->config->get('gateway.zibal.merchant'),
             'amount'        => $this->amount,
             'cellNumber'    => $this->mobileNumber,
             'orderId'       => $this->transactionId,
             'callbackUrl'   => $this->getCallback(),
         ];
-        
+
         $headers = [
             'Agent' => 'WEB',
             'Content-Type' => 'application/json',
         ];
-        
+
         $response = Http::withHeaders($headers)
             ->post($url, $params);
-        
+
         $body = json_decode($response->body(), true);
-        
+
         if ($response->status() != 200 || $body['result'] != 100) {
-            throw new ZibalException($body['result']);
+            throw new ZibalException($body['message'] ?? '', intval($body['result']));
         }
-        
+
         return $body['trackId'];
     }
 
@@ -115,45 +110,45 @@ class Zibal extends PortAbstract implements PortInterface
         $url = self::SERVER_URL . self::START_URL . $trackId;
         $this->setPaymentUrl($url);
     }
-    
+
     protected function verifyPayment()
     {
-        $this->trackingCode = \Request::input('trackId');
-
+        $this->trackingCode = Request::input('trackId');
         $url = self::SERVER_URL . self::VERIFY_URL;
-        
+
         $params = [
-            'trackId'       => $this->refId,
-            'merchant'      => $this->config->get('gateway.Zibal.merchant'),
+            'trackId'       => $this->trackingCode,
+            'merchant'      => $this->config->get('gateway.zibal.merchant'),
         ];
-        
-        $response = \Http::withHeaders([
+
+        $response = Http::withHeaders([
             'Content-Type'  => 'application/json',
         ])->post($url, $params);
-        
+
         $body = json_decode($response->body(), true);
-        
-        if ($response->status() != 200
+
+        if (
+            $response->status() != 200
             || $body['result']  != 100
             || $body['message'] != 'success'
             || $body['amount']  != $this->amount
         ) {
-            throw new ZibalException($body['result']);
+            throw new ZibalException($body['message'] ?? '', intval($body['result']));
         }
         $this->transactionSucceed();
         $this->newLog($response->status(), Enum::TRANSACTION_SUCCEED_TEXT);
     }
-    
+
     protected function userVerify()
     {
-        $status = \Request::get('status');
-        if ($status == 1 || $status == 2){
+        $status = Request::get('status');
+        if ($status == 1 || $status == 2) {
             return true;
         }
         $this->transactionFailed();
-        throw new ZibalException($status);
+        throw new ZibalException('', intval($status));
     }
-    
+
     public function getGatewayUrl()
     {
         return $this->paymentUrl;
@@ -166,5 +161,3 @@ class Zibal extends PortAbstract implements PortInterface
         return $this;
     }
 }
-
-

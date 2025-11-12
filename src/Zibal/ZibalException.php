@@ -35,10 +35,13 @@ class ZibalException extends BankException
         203 => 'trackId نامعتبر می‌باشد.',
     );
 
-    public function __construct($errorId)
+    public function __construct($message, $code = 0)
     {
-        $this->errorId = intval($errorId);
-
-        parent::__construct((isset(self::$errors[$this->errorId]) ? self::$errors[$this->errorId] : '').' #'.$this->errorId, $this->errorId);
+        $code = intval($code);
+        $message = empty($message) ? $code : $message;
+        if (empty($message)) {
+            $message = self::$errors[$code] ?? '';
+        }
+        parent::__construct($message, $code);
     }
 }
