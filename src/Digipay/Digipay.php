@@ -16,7 +16,7 @@ class Digipay extends PortAbstract implements PortInterface
     const VERSION = '2022-02-02';
     const OAUTH_URL = '/digipay/api/oauth/token';
     const PURCHASE_URL = '/digipay/api/tickets/business';
-    const VERIFY_URL = '/digipay/api/purchases/verify/';
+    const VERIFY_URL = '/digipay/api/purchases/verify';
     const REVERSE_URL = '/digipay/api/reverse';
     const DELIVER_URL = '/digipay/api/purchases/deliver';
     const REFUNDS_CONFIG = '/digipay/api/refunds/config';
@@ -25,6 +25,8 @@ class Digipay extends PortAbstract implements PortInterface
     protected $oauthToken;
 
     protected $paymentUrl;
+
+    protected $providerId;
 
     protected $tiket;
 
@@ -63,9 +65,9 @@ class Digipay extends PortAbstract implements PortInterface
 
         if ($response->status() != 200) {
             if ($response->status() == 401) {
-                throw new PurchaseFailedException('username or password is incorrect');
+                throw new PurchaseFailedException('خطا نام کاربری یا رمز عبور شما اشتباه می‌باشد.');
             }
-            throw new PurchaseFailedException('authentication Error');
+            throw new PurchaseFailedException('خطا در هنگام احراز هویت.');
         }
 
         $body = json_decode($response->body(), true);
@@ -107,11 +109,6 @@ class Digipay extends PortAbstract implements PortInterface
         $this->products = $products;
 
         return $this;
-    }
-
-    public function getProducts()
-    {
-        return $this->products;
     }
 
     public function setInvoiceNumber($invoiceNumber)
@@ -163,41 +160,37 @@ class Digipay extends PortAbstract implements PortInterface
     function getCallback()
     {
         if (!$this->callbackUrl) {
-            $this->callbackUrl = Config::get('gateway.Digipay.callback-url');
+            $this->callbackUrl = $this->config->get('gateway.digipay.callback-url');
         }
 
         return $this->makeCallback($this->callbackUrl, ['transaction_id' => $this->transactionId()]);
-    }
-
-    public function setProductCode(string $productCode)
-    {
-        $this->productCode = $productCode;
-
-        return $this;
     }
 
     protected function sendPayRequest()
     {
         $this->newTransaction();
 
-
         $url = self::SERVER_URL . self::PURCHASE_URL . '?type=11';
 
         $params = [
-            'amount'           => $this->amount,
-            'cellNumber'       => $this->mobileNumber,
-            'providerId'       => $this->transactionId,
-            'callbackUrl'      => $this->getCallback(),
-            'basketDetailsDto' => [
-                'items' => [
+            "amount" => (int) $this->amount,
+            "cellNumber" => $this->mobileNumber,
+            "providerId" => $this->transactionId,
+            "callbackUrl" => $this->getCallback(),
+            "basketDetailsDto" => [
+                "items" => [
                     [
-                        'productCode' => $this->transactionId,
-                        'productType' => '1',
-                        'count' => '1',
-                    ],
+                        "sellerId" => "seller-id",
+                        "supplierId" => "supplier-id",
+                        "productCode" => "product-code",
+                        "brand" => "brand",
+                        "productType" => 1,
+                        "count" => 1,
+                        "categoryId" => "category-id",
+                    ]
                 ],
-                'basketId' => $this->transactionId,
-            ],
+                "basketId" => "basket-id"
+            ]
         ];
 
         $headers = [
@@ -207,13 +200,12 @@ class Digipay extends PortAbstract implements PortInterface
             'Digipay-Version' => self::VERSION,
         ];
 
-        $response = Http::withHeaders($headers)
-            ->post($url, $params);
+        $response = Http::withHeaders($headers)->post($url, $params);
 
         $body = json_decode($response->body(), true);
 
         if ($response->status() != 200) {
-            $message = $body['result']['message'] ?? 'An error occurred while requesting payment.';
+            $message = $body['result']['message'] ?? 'خطا در هنگام درخواست برای پرداخت رخ داده است.';
             throw new PurchaseFailedException($message);
         }
 
@@ -224,31 +216,33 @@ class Digipay extends PortAbstract implements PortInterface
         return $this->getTiket();
     }
 
-    protected function commit()
-    {
-        // No use
-    }
 
-    protected function verifyPayment()
+    protected function verifyPayment() 
     {
         $this->refId = Request::input('type');
+        $this->providerId = Request::input('providerId');
         $this->trackingCode = Request::input('trackingCode');
+        $url = self::SERVER_URL . self::VERIFY_URL . '?type=' . $this->refId;
 
-        $url = self::SERVER_URL . self::VERIFY_URL . $this->trackingCode . '?type=' . $this->refId;
+        $data = [
+            'trackingCode' => $this->trackingCode,
+            'providerId'   => $this->providerId
+        ];
 
         $response = Http::withHeaders([
-            'Accept' => 'application/json',
-            'Authorization' => 'Bearer '.$this->oauthToken,
-        ])
-            ->post($url);
+            'Content-Type'  => 'application/json',
+            'Authorization' => 'Bearer ' . $this->oauthToken,
+        ])->post($url, $data);
 
         $body = json_decode($response->body(), true);
+
         if ($response->status() != 200
-            && $body['trackingCode'] != $this->trackingCode
-            && $body['amount'] != $this->amount
-            && $body['result']['status'] != 0
+            || $body['providerId'] != $this->providerId
+            || $body['trackingCode'] != $this->trackingCode
+            || $body['amount'] != $this->amount
+            || $body['result']['status'] != 0
         ) {
-            $message = $body['result']['message'] ?? 'Transaction not confirmed';
+            $message = $body['result']['message'] ?? 'تراکنش تایید نشد';
             throw new InvalidPaymentException($message, (int) $response->status());
         }
         $this->transactionSucceed();
@@ -269,7 +263,7 @@ class Digipay extends PortAbstract implements PortInterface
         if (!in_array($type, [5, 13])) {
             throw new PurchaseFailedException('This method is not supported for this type.');
         }
-
+        
 
         $data = [
             'invoiceNumber' => $transaction_id,
@@ -286,7 +280,7 @@ class Digipay extends PortAbstract implements PortInterface
 
         $body = json_decode($response->body(), true);
         if ($response->status() != 200 || (isset($body['result']['code']) && $body['result']['code'] != 0)) {
-            $message = $body['result']['message'] ?? 'An error occurred while requesting delivery of the item';
+            $message = $body['result']['message'] ?? 'خطا در هنگام درخواست برای تحویل کالا رخ داده است.';
             throw new InvalidPaymentException($message, $response->status());
         }
         return $body;
@@ -337,7 +331,7 @@ class Digipay extends PortAbstract implements PortInterface
         $body = json_decode($response->body(), true);
 
         if ($response->status() != 200 || (isset($body['result']['code']) && $body['result']['code'] != 0)) {
-            $message = $body['result']['message'] ?? 'An error occurred while requesting a transaction rollback';
+            $message = $body['result']['message'] ?? 'خطا در هنگام درخواست مرجوعی تراکنش رخ داده است.';
             return throw new InvalidPaymentException($message, $response->status());
         }
         return $body;
