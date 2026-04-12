@@ -110,8 +110,16 @@ class GatewayResolver
 	 */
 	public function verify()
 	{
-		if (!$this->request->has('trackId') && !$this->request->has('transaction_id') && !$this->request->has('iN') && !$this->request->has('invoiceid') && !$this->request->has('order_number')&& !$this->request->has('session_id'))
+		if (
+			!$this->request->has('trackId') &&
+			!$this->request->has('transaction_id') &&
+			!$this->request->has('iN') &&
+			!$this->request->has('invoiceid') &&
+			!$this->request->has('order_number') &&
+			!$this->request->has('session_id')
+		)
 			throw new InvalidRequestException;
+
 		if ($this->request->has('transaction_id')) {
 			$id = $this->request->get('transaction_id');
 		} elseif ($this->request->has('invoiceid')) {
@@ -119,24 +127,36 @@ class GatewayResolver
 		} elseif ($this->request->has('order_number')) {
 			$id = $this->request->get('order_number');
 		} elseif ($this->request->has('session_id')) {
-            $id = $this->request->get('session_id');
-        } elseif ($this->request->has('trackId')) {
-            $id = $this->request->get('trackId');
-        }else {
+			$id = $this->request->get('session_id');
+		} elseif ($this->request->has('trackId')) {
+			$id = $this->request->get('trackId');
+		} else {
 			$id = $this->request->get('iN');
 		}
 
-		$transaction = $this->getTable()->whereId($id)->first();
+		return DB::transaction(function () use ($id) {
+			// Lock the row for update to prevent race conditions
+			$transaction = $this->getTable()
+				->where('id', $id)
+				->lockForUpdate()
+				->first();
 
-		if (!$transaction)
-			throw new NotFoundTransactionException;
+			if (!$transaction)
+				throw new NotFoundTransactionException;
 
-		if (in_array($transaction->status, [Enum::TRANSACTION_SUCCEED, Enum::TRANSACTION_FAILED]))
-		 	throw new RetryException;
+			if (in_array($transaction->status, [Enum::TRANSACTION_SUCCEED, Enum::TRANSACTION_FAILED]))
+				throw new RetryException;
 
-		$this->make($transaction->port);
 
-		return $this->port->verify($transaction);
+			$this->make($transaction->port);
+
+			try {
+				$result = $this->port->verify($transaction);
+				return $result;
+			} catch (\Exception $e) {
+				throw $e;
+			}
+		});
 	}
 
 
