@@ -5,7 +5,7 @@ namespace Larabookir\Gateway\Bazarpay;
 use Larabookir\Gateway\Enum;
 use Larabookir\Gateway\PortAbstract;
 use Larabookir\Gateway\PortInterface;
-use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Request as Input;
 
 class Bazarpay extends PortAbstract implements PortInterface
 {

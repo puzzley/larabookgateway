@@ -29,20 +29,6 @@ class Zarinpal extends PortAbstract implements PortInterface
     const ZARINGATE_START_PAY = 'https://www.zarinpal.com/pg/StartPay/%s/ZarinGate';
 
     /**
-     * Optional payer mobile number
-     *
-     * @var string|null
-     */
-    protected $mobile;
-
-    /**
-     * Optional payer email address
-     *
-     * @var string|null
-     */
-    protected $email;
-
-    /**
      * Whether to use sandbox environment
      *
      * @var bool
@@ -55,18 +41,6 @@ class Zarinpal extends PortAbstract implements PortInterface
      * @var bool
      */
     protected $zarinGate = false;
-
-    /**
-     * Set optional payer mobile
-     *
-     * @param string $mobile
-     * @return $this
-     */
-    public function setMobile(string $mobile): self
-    {
-        $this->mobile = $mobile;
-        return $this;
-    }
 
     /**
      * Enable sandbox mode for testing
@@ -172,14 +146,14 @@ class Zarinpal extends PortAbstract implements PortInterface
             'merchant_id'  => $this->config->get('gateway.zarinpal.merchant-id'),
             'amount'       => $this->amount,
             'callback_url' => $this->getCallback(),
-            'description'  => $this->config->get('gateway.zarinpal.description', 'پرداخت'),
+            'description'  => !empty($this->description) ? $this->description : $this->config->get('gateway.zarinpal.description', ''),
         ];
 
-        if ($this->mobile) {
-            $payload['metadata']['mobile'] = $this->mobile;
+        if (!empty($this->mobileNumber)) {
+            $payload['metadata']['mobile'] = $this->mobileNumber;
         }
 
-        if ($this->email) {
+        if (!empty($this->email)) {
             $payload['metadata']['email'] = $this->email;
         }
 
