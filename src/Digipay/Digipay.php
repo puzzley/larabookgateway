@@ -93,7 +93,7 @@ class Digipay extends PortAbstract implements PortInterface
 
     public function redirect()
     {
-        return Redirect::to($this->getGatewayUrl());
+        return \Redirect::to($this->getGatewayUrl());
     }
 
     public function verify($transaction)
