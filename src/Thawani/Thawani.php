@@ -5,7 +5,6 @@ namespace Larabookir\Gateway\Thawani;
 use Larabookir\Gateway\Enum;
 use Larabookir\Gateway\PortAbstract;
 use Larabookir\Gateway\PortInterface;
-use Illuminate\Support\Facades\Input;
 
 class Thawani extends PortAbstract implements PortInterface
 {

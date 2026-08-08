@@ -5,7 +5,7 @@ namespace Larabookir\Gateway\Bazarpay;
 use Larabookir\Gateway\Enum;
 use Larabookir\Gateway\PortAbstract;
 use Larabookir\Gateway\PortInterface;
-use Illuminate\Support\Facades\Request as Input;
+use Illuminate\Support\Facades\Request;
 
 class Bazarpay extends PortAbstract implements PortInterface
 {
@@ -154,7 +154,7 @@ class Bazarpay extends PortAbstract implements PortInterface
 
     protected function userVerify()
     {
-        $status = Input::get('status', '');
+        $status = Request::input('status', '');
 
         if ($status == 'done') {
             return true;

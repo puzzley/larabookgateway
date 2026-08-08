@@ -4,7 +4,6 @@ namespace Larabookir\Gateway\Paypal;
 
 use Google\Rpc\Context\AttributeContext\Response;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Input;
 use Larabookir\Gateway\Enum;
 use Larabookir\Gateway\PortAbstract;
 use Larabookir\Gateway\PortInterface;
