@@ -38,7 +38,8 @@ class Zibal extends PortAbstract implements PortInterface
 
     public function redirect()
     {
-        return Redirect::to($this->getGatewayUrl());
+        $gatewayUrl = $this->getGatewayUrl();
+        return \View::make('app.gateway.pay-link-redirector', compact('gatewayUrl'));
     }
 
     public function verify($transaction)

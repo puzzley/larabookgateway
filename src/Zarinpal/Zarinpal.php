@@ -119,7 +119,7 @@ class Zarinpal extends PortAbstract implements PortInterface
     public function redirect()
     {
         $gatewayUrl = $this->getGatewayUrl();
-        return redirect()->away($gatewayUrl);
+        return \View::make('app.gateway.pay-link-redirector')->with(compact('gatewayUrl'));
     }
 
     /**
