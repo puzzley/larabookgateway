@@ -82,7 +82,9 @@ class Zibal extends PortAbstract implements PortInterface
         $params = [
             'merchant'      => $this->config->get('gateway.zibal.merchant'),
             'amount'        => $this->amount,
-            'cellNumber'    => $this->mobileNumber,
+            'mobile'        => $this->mobileNumber,
+            'email'         => $this->email,
+            'description'   => $this->description,
             'orderId'       => $this->transactionId,
             'callbackUrl'   => $this->getCallback(),
         ];
