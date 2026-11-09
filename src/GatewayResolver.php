@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\DB;
 use Larabookir\Gateway\Bazarpay\Bazarpay;
 use Larabookir\Gateway\Thawani\Thawani;
 use Larabookir\Gateway\Zibal\Zibal;
+use Larabookir\Gateway\Dornapal\Dornapal;
 
 class GatewayResolver
 {
@@ -42,7 +43,7 @@ class GatewayResolver
 	/**
 	 * Keep current port driver
 	 *
-	 * @var Mellat|Saman|Sadad|Zarinpal|Payline|JahanPay|Parsian|Pay|Saderat|Saderatnew|Idpay|Alfacoins|Payping|Plisio|Bazarpay|Thawani|Digipay|Paypal|Stripe
+	 * @var Mellat|Saman|Sadad|Zarinpal|Payline|JahanPay|Parsian|Pay|Saderat|Saderatnew|Idpay|Alfacoins|Payping|Plisio|Bazarpay|Thawani|Digipay|Paypal|Stripe|Zibal|Dornapal
 	 */
 	protected $port;
 
@@ -70,7 +71,7 @@ class GatewayResolver
 	public function getSupportedPorts()
 	{
 		return [Enum::MELLAT, Enum::SADAD, Enum::ZARINPAL, Enum::PAYLINE, Enum::JAHANPAY, Enum::PARSIAN, Enum::PASARGAD, Enum::SAMAN, Enum::PAY, Enum::SADERAT, Enum::SADERATNEW, Enum::IDPAY, Enum::ALFACOINS, Enum::PAYPING, Enum::PLISIO, Enum::BAZARPAY, Enum::THAWANI,
-        Enum::DIGIPAY, Enum::STRIPE, Enum::PAYPAL, Enum::ZIBAL];
+        Enum::DIGIPAY, Enum::STRIPE, Enum::PAYPAL, Enum::ZIBAL, Enum::DORNAPAL];
 	}
 
 	/**
@@ -206,6 +207,8 @@ class GatewayResolver
             $name = Enum::PAYPAL;
         }elseif ($port InstanceOf Zibal){
             $name = Enum::ZIBAL;
+        }elseif ($port InstanceOf Dornapal){
+            $name = Enum::DORNAPAL;
         }elseif ($port InstanceOf Digipay) {
             $name = Enum::DIGIPAY;
         }elseif(in_array(strtoupper($port),$this->getSupportedPorts())){

@@ -173,6 +173,16 @@ return [
         'merchant' => 'zibal',
         'callbackUrl' => 'http://yoursite.com/path/to',
     ],
+    //--------------------------------
+    // Dornapal gateway
+    // Amounts passed to price() stay in Rial.
+    // IRR sends that amount. IRT divides it by 10 when creating the payment.
+    //--------------------------------
+    'dornapal' => [
+        'merchant-key' => '',
+        'callback-url' => '/',
+        'currency' => 'IRR', // IRR | IRT
+    ],
     //-------------------------------
     // Proxy settings
     // first of all this settings read from config folder of app (serivces.php) if it was not exist read from below

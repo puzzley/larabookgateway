@@ -25,6 +25,7 @@ class Enum
     const STRIPE     = 'STRIPE';
     const PAYPAL     = 'PAYPAL';
     const ZIBAL      = 'ZIBAL';
+    const DORNAPAL   = 'DORNAPAL';
 
 	/**
 	 * Status code for status field in poolport_transactions table
